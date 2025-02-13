@@ -48,6 +48,7 @@ Set est. capcity = estimated resting voltage auto shutoff function
 ## Notes:
 
 ### Light Notes:
+[Roadshock LED Flood](https://www.harborfreight.com/3-in-led-flood-light-64322.html)
 * Light is a harbor freight ROADSHOCK 3 in. LED Flood Light
     Must open up case and solder wire to PWM dimming inputs on each TP8005s then these tie together
     Must also run this dimming wire externally (drill hole and epoxy wire in to maintain waterproofing)
