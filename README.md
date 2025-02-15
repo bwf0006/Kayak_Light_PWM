@@ -17,6 +17,31 @@
 3. GPS/NAV data logging
 4. Battery capacity estimator with low voltage shutoff
 
+# TO DO:
+- [ ] Clean up code
+    - [ ] Change pwm logic back to standard and invert in set_x function (will need to change % display logic?)
+    - [ ] Comment out IR from main
+- [ ] Program attiny to act as remote transmitter
+    - [ ] Bring transmit level down to 3.3v!!!!! (1kohm and 2kohm voltage divider)
+    - [ ] Wire up and test
+    - [ ] Create transmit data scheme: header, data, checksum
+    - [ ] Send signal multiple times on press for assurance? would need to ignore duplicates
+- [ ]  Implement receiver code and call in main of pico
+    - [ ] See points above
+- [ ] Battery Capacity estimator
+    - [ ] Order a new 4226
+    - [ ] Gather test data (write to SD)
+    - [ ] Train AI model to estimate resting voltage with known current draw, battery voltage, temp, etc.
+    - [ ] Incorportate algorithm in pico
+    - [ ] Use battery capacity estimation for capacity readout on call for it from remote
+    - [ ] Use battery capacity estimation for low voltage shutoff
+- [ ] Write GPS code
+    - [ ] Determine what data I want and what intervals to log
+    - [ ] start new file/increment file name on each startup
+    - [ ] write to csv on SD
+    - [ ] log temp and humidity as well but perhaps at different intervals, such as every 5th gps data sample?
+    - [ ] 
+
 ## Using AI for battery capacity estimation
 
 ### Gather Data
@@ -59,7 +84,7 @@ Set est. capcity = estimated resting voltage auto shutoff function
 * This dimming PWM pin can be driven directly with 5v PWM from something like an arduino, but use caution as it will draw a lot of current if
   driven when power is disconnected from the 12-24v input of the light. It's safer to use a mosfet to drive it.
 
-### ZVN2110A MOSFET
+### ZVN2110A N Channel MOSFET
 Overkill but its what I have on hand
 Vgs_thresh: min = .8v, max = 2.4v
 Rds_on = 4ohm at Vgs = 10v and Id = 1A  
