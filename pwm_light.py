@@ -17,7 +17,9 @@ Dependencies:
 - tm1637
 
 Usage:
-- Explain how to run the script, including any command-line arguments if applicable.
+- Controls PWM and three override switches, set invert = 1 or 0 depending on circuit, adjust threshold values for override brightness settings
+    adjust increment for higher or lower incrementing of brightness, adjust hold_threshold for duration required to register button hold,
+    only: start_pwm_light() is needed to call, initialize, and attach interrupts
 
 Notes:
 - interrupts for the three buttons (top_sw, middle_sw, bottom_sw)
@@ -31,18 +33,21 @@ import tm1637
 import tm1637_custom
 
 '''------------------------------Setup----------------------------------------'''
-# Constants for brightness levels *PWM duty cycle inverted now with mosfet driving
-high_thresh = 63000 #high bright
+# Invert pwm logic? for inverted duty cycle: 1=invert 0=regular
+invert = 1
+
+# Constants for brightness levels
+high_thresh = 63000 #high bright, max thresh = 65535
 mid_thresh = 10000
-low_thresh = 1000 #low bright
+low_thresh = 1000 #low bright, min thresh = 1 since 0 reserved for off
 increment = 1000
 
 hold_threshold = 0.8  # seconds
 
 # PWM setup
 pwm = PWM(Pin(6))
-pwm.freq(1000)  # 1 kHz frequency
-x = 32767  # Initial brightness set point #duty cycle with max of 65535
+pwm.freq(1000)  #1kHz freq
+x = 32767  #Initial brightness set point
 pwm.duty_u16(x)
 
 # Switches setup
@@ -58,26 +63,31 @@ bottom_sw_last_state = 1
 def set_x(val):
     global x
     x = val
-    pwm.duty_u16(x)
+    if invert == 1:
+        x_actual = abs(x-65535)
+    else:
+        x_actual = x
+    pwm.duty_u16(x_actual)    
     display_brightness()
     
 '''-------------------------Display Brightness--------------------------------'''
-# Display brightness when controlled by switches, not ir remote
+# Display brightness in percent or high/low/off
 def display_brightness():
+    global invert
     if x == high_thresh:
-        tm1637_custom.show_bright_percentage(0,"low ")#led at low, mosfet driven low duty cycle -> light high
+        tm1637_custom.show_bright_percentage(0,"high ")
     elif x == low_thresh:
-        tm1637_custom.show_bright_percentage(0,"high")#led at bright, mosfet driven high duty cycle -> light low
-    elif x==65535:
-        tm1637_custom.show_bright_percentage(0,"off ")#led will be at brightest, mosfet driven 100percent
+        tm1637_custom.show_bright_percentage(0,"low ")
+    elif x == 0:
+        tm1637_custom.show_bright_percentage(0,"off ")
     else:
-        tm1637_custom.show_bright_percentage(1,x)
+        tm1637_custom.show_bright_percentage(1,x) #calculates percent doesnt need inversion
 
 '''------------------------------SW Hold--------------------------------------'''
 # Brightness control functions
-def bottom_hold():
+def top_hold():
     global x
-    if x != 65535: #if not off   
+    if x != 0: #if not off   
         x = high_thresh
         set_x(x)
 
@@ -87,16 +97,16 @@ def middle_hold():
         x = mid_thresh
         set_x(x)
 
-def top_hold():
+def bottom_hold():
     global x
-    if x != 65535:
+    if x != 0:
         x = low_thresh
         set_x(x)
 
 '''------------------------------SW Press-------------------------------------'''
-def bottom_press():
+def top_press():
     global x, increment
-    if x != 65535:
+    if x != 0:
         if x < high_thresh - increment:
             x += increment
         else:
@@ -107,17 +117,17 @@ def middle_press():
     global x
     global last_valid_x
     # Toggle between 0 and the last valid x value
-    if x != 65535:
+    if x != 0:
         last_valid_x = x #saves value if not off
-    if x == 65535:       #if off, sets x to last valid x
+    if x == 0:       #if off, sets x to last valid x
         x = last_valid_x
     else:
-        x = 65535 #led high but mosfet gate on full -> light off
+        x = 0
     set_x(x)
 
-def top_press():
+def bottom_press():
     global x, increment
-    if x != 65535:    
+    if x != 0:    
         if x > increment + low_thresh:
             x -= increment
         else:
@@ -131,21 +141,21 @@ def check_switch_state():
     debounce_delay = 50  # Debounce time in milliseconds (adjust if needed)
     
     if top_sw.value() == 0 and top_sw_last_state == 1:
-        time.sleep_ms(debounce_delay)  # Short debounce delay
-        if top_sw.value() == 0:  # Confirm it's still pressed
-            press_time = time.ticks_ms()
+        time.sleep_ms(debounce_delay)  #short debounce
+        if top_sw.value() == 0:  #check if still pressed
+            press_time = time.ticks_ms() #start counting time
             while top_sw.value() == 0:
-                time.sleep(0.01)
-                if time.ticks_diff(time.ticks_ms(), press_time) > hold_threshold * 1000:
+                time.sleep(0.01) #more delay
+                if time.ticks_diff(time.ticks_ms(), press_time) > hold_threshold * 1000: #if held
                     #print("Top switch is held") #debug statement
                     top_hold()
                     break
             else:
                 #print("Top switch is pressed") #debug statement
                 top_press()
-            while top_sw.value() == 0:  # Wait for release
+            while top_sw.value() == 0:  #wait for release
                 time.sleep(0.01)
-            top_sw_last_state = 1  # Only update once released
+            top_sw_last_state = 1  #only update on release
             
     if middle_sw.value() == 0 and middle_sw_last_state == 1:
         time.sleep_ms(debounce_delay)

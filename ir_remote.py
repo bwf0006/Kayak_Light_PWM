@@ -31,14 +31,13 @@ from ir_rx.nec import NEC_8
 from ir_rx.print_error import print_error
 
 '''------------------------------Setup----------------------------------------'''
-# Define the GPIO pin to which the IR receiver is connected
-p = Pin(17, Pin.IN)  # Change to the correct pin if needed
+ir_pin = Pin(17, Pin.IN)
 repeat = 0
 last_data = 0
-level = [55000, 45000, 33000, 25000, 15000, 10000, 5000] #high to low
+level = [5000, 10000, 15000, 25000, 33000, 45000, 55000] #array of brightness values assigned to buttons 2-8, 1 and 9 reserved
 
 '''--------------------------Button actions-----------------------------------'''
-# all unused contain pass, mapped out for future modifications
+# all unused contain pass, mapped for future modifications
 # Button '1' action
 def press_button_action_1():
     #print("button '1' pressed") #debug statement
@@ -52,7 +51,7 @@ def held_button_action_1():
 def press_button_action_2():
     #print("button '2' pressed") #debug statement
     x = pwm_light.x
-    if x != 65535:
+    if x != 0:
         pwm_light.set_x(level[0])
     
 def held_button_action_2():
@@ -63,7 +62,7 @@ def held_button_action_2():
 def press_button_action_3():
     #print("button '3' pressed") #debug statement
     x = pwm_light.x
-    if x != 65535:
+    if x != 0:
         pwm_light.set_x(level[1])
 
 def held_button_action_3():
@@ -74,7 +73,7 @@ def held_button_action_3():
 def press_button_action_4():
     #print("button '4' pressed") #debug statement
     x = pwm_light.x
-    if x != 65535:
+    if x != 0:
         pwm_light.set_x(level[2])
     
 def held_button_action_4():
@@ -85,7 +84,7 @@ def held_button_action_4():
 def press_button_action_5():
     #print("button '5' pressed") #debug statement
     x = pwm_light.x
-    if x != 65535:
+    if x != 0:
         pwm_light.set_x(level[3])
     
 def held_button_action_5():
@@ -96,7 +95,7 @@ def held_button_action_5():
 def press_button_action_6():
     #print("button '6' pressed") #debug statement
     x = pwm_light.x
-    if x != 65535:
+    if x != 0:
         pwm_light.set_x(level[4])
     
 def held_button_action_6():
@@ -107,7 +106,7 @@ def held_button_action_6():
 def press_button_action_7():
     #print("button '7' pressed") #debug statement
     x = pwm_light.x
-    if x != 65535:
+    if x != 0:
         pwm_light.set_x(level[5])
     
 def held_button_action_7():
@@ -118,7 +117,7 @@ def held_button_action_7():
 def press_button_action_8():
     #print("button '8' pressed") #debug statement
     x = pwm_light.x
-    if x != 65535:
+    if x != 0:
         pwm_light.set_x(level[6])
     
 def held_button_action_8():
@@ -207,7 +206,7 @@ def held_button_action_ok():
     pass
 
 '''---------------------------Data Dictionary---------------------------------'''
-# Dictionary mapping button codes to actions for both press and held actions
+#dictionary mapping button codes to actions for press and holds
 button_actions = {
     #Button '1'
     0x45: (press_button_action_1, held_button_action_1),
@@ -247,7 +246,7 @@ button_actions = {
 
 '''---------------------------Handle Buttons----------------------------------'''
 def handle_button(button, action_type):
-    # Check if the button code is in the dictionary
+    #check if the button code is in the dictionary
     if button in button_actions:
         # Get the tuple (press_action, hold_action)
         press_action, hold_action = button_actions[button]
@@ -295,7 +294,7 @@ def cb(data, addr, ctrl):
 def start_ir_receiver():
 
     # Create the IR receiver instance using NEC 8-bit protocol
-    ir_receiver = NEC_8(p, cb)
+    ir_receiver = NEC_8(ir_pin, cb)
 
     # Error handling
     ir_receiver.error_function(print_error)

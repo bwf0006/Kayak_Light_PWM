@@ -19,7 +19,7 @@
 
 # TO DO:
 - [ ] Clean up code
-    - [ ] Change pwm logic back to standard and invert in set_x function (will need to change % display logic?)
+    - [x] Change pwm logic back to standard and invert in set_x function (will need to change % display logic?)
     - [ ] Comment out IR from main
 - [ ] Program attiny to act as remote transmitter
     - [ ] Bring transmit level down to 3.3v!!!!! (1kohm and 2kohm voltage divider)
@@ -29,7 +29,7 @@
 - [ ]  Implement receiver code and call in main of pico
     - [ ] See points above
 - [ ] Battery Capacity estimator
-    - [ ] Order a new 4226
+    - [x] Order a new 4226
     - [ ] Gather test data (write to SD)
     - [ ] Train AI model to estimate resting voltage with known current draw, battery voltage, temp, etc.
     - [ ] Incorportate algorithm in pico

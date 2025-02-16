@@ -39,11 +39,11 @@ from machine import Timer
 
 '''------------------------------Setup----------------------------------------'''
 tm = tm1637.TM1637(clk=Pin(7), dio=Pin(8))
-load_timer = machine.Timer()  # Define globally
+load_timer = machine.Timer()
 
 '''------------------------------Load-----------------------------------------'''
 def load(state):
-    global load_timer  # Reference the global timer
+    global load_timer  #refer to global timer
     if state == 1:
         pattern = [0b00000001, 0b00000010, 0b00000100, 0b00001000,  
                    0b00010000, 0b00100000, 0b01000000, 0b10000000]
@@ -53,10 +53,10 @@ def load(state):
             nonlocal index  # Allow modification of the index variable
             data = [pattern[index], pattern[index] & 0b01111111, pattern[index], pattern[index]]  # Ensure colon is off
             tm.write(data)  
-            index = (index + 1) % len(pattern)  # Loop through the pattern
+            index = (index + 1) % len(pattern)  #loop through the pattern
         load_timer.init(period=100, mode=machine.Timer.PERIODIC, callback=update_display)
     else:
-        load_timer.deinit()  # Stop the timer if load(0) is called
+        load_timer.deinit()  #stop the timer if load(0) is called
 
 '''--------------------------Show Brightness %--------------------------------'''
 def show_bright_percentage(is_num, value, duration=2000):  # duration in milliseconds
@@ -64,15 +64,15 @@ def show_bright_percentage(is_num, value, duration=2000):  # duration in millise
     if is_num == 0: #display high/off/low if at those values
         tm.show(value)
     else: #display percentage based on inverted pwming from 0-65535
-        value = int(65536 - (value/65636)*100) #calculate brightness
+        value = int((value/65535)*100) #get value percent in int 1-99, 0 and 100 reserved
         percent_1 = 0b01100011  # Third digit |-- %   |
         percent_2 = 0b01011100  # Fourth digit|     --|
-        tens = value // 10  # Extract tens place
-        ones = value % 10   # Extract ones place
+        tens = value // 10  #extract tens place
+        ones = value % 10   #extract ones place
         tm.write([tm.encode_digit(tens), tm.encode_digit(ones), percent_1, percent_2])
-    # Create a timer
-    clear_timer = Timer(-1)  # Local timer instance
-    # Start a one-time timer to clear the display after `duration` ms
+    #create timer
+    clear_timer = Timer(-1)  #local timer instance
+    #start a one-time timer to clear display after `duration` ms
     clear_timer.init(mode=Timer.ONE_SHOT, period=duration, callback=lambda t: tm.show("    "))
 
 '''------------------------------Scroll---------------------------------------'''
